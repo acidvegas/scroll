@@ -1,31 +1,35 @@
 # scroll
-> Scroll is full-featured IRC bot that carries a **PENIS PUMP** & will brighten up your mundane chats in your lame channels with some colorful IRC artwork! Designed to be extremely stable, this bot is sure to stay rock hard & handle itself quite well!
+> Scroll is full-featured IRC bot that carries a **PENIS PUMP** & will brighten up all the mundane chats in your lame IRC channels with some colorful IRC artwork! Designed to be extremely stable, this bot is sure to stay rock hard & handle itself quite well!
 
 ![](screens/preview.png)
 
 ## Requirements
 - [Python](https://www.python.org/downloads/) *(**Note:** This script was developed to be used with the latest version of Python)*
-- [Pillow](https://pypi.org/project/Pillow/) *(Required by [core/ascii2png.py](scroll/core/ascii2png.py)*
+- [Pillow](https://pypi.org/project/Pillow/) *(Required by [core/ascii2png.py](scroll/core/ascii2png.py))*
 
 ## Setup
-Edit the [core/config.py](scroll/core/config.py) file and then place your art files in the [data/art](scroll/data/art) directory. This repository by itself does not contain any IRC art files. A large organized collection of IRC art can be cloned from the [ircart](https://github.com/ircart/ircart) repository directory into your [data/art](scroll/data/art) directory by doing `git clone https://github.com/ircart/ircart.git $SCROLL_DIR/scroll/data/art` *(change the $SCROLL_DIR to wherever you cloned the source)*.
+Edit the [core/config.py](scroll/core/config.py) file and then place your art files in the [data/art](scroll/data/art) directory.
+
+This repository by itself does not contain any art. A large organized collection of IRC art can be cloned from the [ircart](https://github.com/ircart/ircart) repository directory into your [data/art](scroll/data/art) directory:
+
+`git clone https://github.com/ircart/ircart.git $SCROLL_DIR/scroll/data/art` *(change the `$SCROLL_DIR` to where you cloned it)*
 
 **Warning:** Try not to have any filenames in your [data/art](scroll/data/art) directory that are the same as any of the [Commands](#commands) below or you won't be able to play them!
 
 ## Commands
 ### User Commands
-| Command                         | Description                                                                                                                                             |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| @scroll                         | information about scroll                                                                                                                                |
-| .ascii dirs                     | list of ascii directories                                                                                                                               |
-| .ascii list                     | list of ascii filenames                                                                                                                                 |
-| .ascii png \<url>               | convert an art paste into an image *(\<url> must be a [Pastebin](https://pastebin.com/) or [Termbin](https://termbin.com/) link)*                       |
-| .ascii random [dir]             | play random art, optionally from the [dir] directory only                                                                                               |
-| .ascii remote \<url>            | play remote art pastes *(\<url> must be a [Pastebin](https://pastebin.com/) or [Termbin](https://termbin.com/) link)*                                   |
-| .ascii search \<query>          | search [data/art](scroll/data/art) for \<query>                                                                                                         |
-| .ascii stop                     | stop playing art                                                                                                                                        |
-| .ascii upload [\<url> \<title>] | list of uploaded art pastes or upload \<url> as \<title> *(\<url> must be a [Pastebin](https://pastebin.com/) or [Termbin](https://termbin.com/) link)* |
-| .ascii \<name> [\<trunc>]       | play \<name> art from [data/art](scroll/data/art) *(see usage below)*                                                                                   |
+| Command                         | Description                                                                                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| @scroll                         | information about scroll                                                                                                                         |
+| .ascii dirs                     | list of ascii directories                                                                                                                        |
+| .ascii list                     | list of ascii filenames                                                                                                                          |
+| .ascii png \<url>               | convert an art paste into an image *(must be a [Pastebin](https://pastebin.com/) or [Termbin](https://termbin.com/) link)*                       |
+| .ascii random [dir]             | play random art, optionally from the [dir] directory only                                                                                        |
+| .ascii remote \<url>            | play remote art pastes *(must be a [Pastebin](https://pastebin.com/) or [Termbin](https://termbin.com/) link)*                                   |
+| .ascii search \<query>          | search [data/art](scroll/data/art) for \<query>                                                                                                  |
+| .ascii stop                     | stop playing art                                                                                                                                 |
+| .ascii upload [\<url> \<title>] | list of uploaded art pastes or upload \<url> as \<title> *(must be a [Pastebin](https://pastebin.com/) or [Termbin](https://termbin.com/) link)* |
+| .ascii \<name> [\<trunc>]       | play \<name> art from [data/art](scroll/data/art) *(see usage below)*                                                                            |
 
 #### Note
 The \<trunc> argument for the `.ascii` command allows you to truncate lines off of an ASCII. The data is TOP,BOTTOM,LEFT,RIGHT,SPACES. Top being how many lines to remove from the top. Bottom being the same except from the bottom. Left and right remove characters from each side, and spaces will prefix lines with this many spaces.
@@ -33,12 +37,12 @@ The \<trunc> argument for the `.ascii` command allows you to truncate lines off 
 **Example:** `.ascii funnyguy 3,5,0,10,30` *(This will remove 3 lines from the top, 5 lines from the bottom, no characters from the left, 10 characters from the right, and append 30 spaces before each line)*
 
 ### Admin Commands *(Private Message)*
-| Command                       | Description                                                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| .config [\<setting> \<value>] | view config or change \<setting> to \<value>                                                                 |
-| .ignore [\<add/del> \<ident>] | view ignore list or \<add/del> an \<ident> *(\<ident> must be in nick!user@host format, wildcards accepted)* |
-| .raw \<data>                  | send \<data> to the server                                                                                   |
-| .update                       | update the [data/art](scroll/data/art) directory *(see usage below)*                                         |
+| Command                       | Description                                                                                         |
+| ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| .config [\<setting> \<value>] | view config or change \<setting> to \<value>                                                        |
+| .ignore [\<add/del> \<ident>] | view ignore list or \<add/del> an \<ident> *(must be in nick!user@host format, wildcards accepted)* |
+| .raw \<data>                  | send \<data> to the server                                                                          |
+| .update                       | update the [data/art](scroll/data/art) directory *(see usage below)*                                |
 
 #### Note
 The `.update` command is if you cloned a git repository, like the one mentioned in the [Setup](#setup) section, for your [data/ascii](scroll/data/ascii) directory. This will simply perform a `git pull` on the repository to update it.
