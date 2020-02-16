@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Scroll IRC Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
+# Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # functions.py
 
 import base64

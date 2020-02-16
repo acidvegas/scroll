@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Scroll IRC Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
+# Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # ascii2png.py
 
 '''

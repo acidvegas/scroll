@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Scroll IRC Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
+# Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # database.py
 
 import os
@@ -20,10 +20,10 @@ def check():
 		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_results',     '10'))
 		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_uploads',     '25'))
 		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_uploads_per', '5'))
+		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('rnd_exclude',     'ansi,big,birds,hang,pokemon'))
 		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('throttle_cmd',    '3'))
 		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('throttle_msg',    '0.03'))
 		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('throttle_png',    '0.03'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('rnd_exclude',     'ansi,big,birds,hang,pokemon'))
 		db.commit()
 
 class Ignore:

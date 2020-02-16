@@ -5,7 +5,7 @@
 
 ## Requirements
 - [Python](https://www.python.org/downloads/) *(**Note:** This script was developed to be used with the latest version of Python)*
-- [Pillow](https://pypi.org/project/Pillow/) *(Required by [core/ascii2png.py](scroll/core/ascii2png.py))*
+- [Pillow](https://pypi.org/project/Pillow/) *(Required by [core/mircart.py](scroll/core/mircart.py))*
 
 ## Setup
 Edit the [core/config.py](scroll/core/config.py) file and then place your art files in the [data/art](scroll/data/art) directory.

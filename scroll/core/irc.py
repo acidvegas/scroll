@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Scroll IRC Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
+# Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # irc.py
 
 import glob
@@ -108,7 +108,7 @@ class Commands:
 		try:
 			Bot.playing = True
 			data = open(ascii_file, encoding='utf8', errors='replace').read()
-			if len(data.splitlines()) > int(database.Settings.get('max_lines')) and chan != '#scroll':
+			if len(data.splitlines()) > functions.floatint(database.Settings.get('max_lines')) and chan != '#scroll':
 				Commands.error(chan, 'File is too big.', 'Take it to #scroll')
 			else:
 				name = ascii_file.split(ascii_dir)[1]
@@ -131,7 +131,7 @@ class Commands:
 
 	def sendmsg(target, msg):
 		Commands.raw(f'PRIVMSG {target} :{msg}')
-		time.sleep(functions.floatint(database.Settings.get('msg_throttle')))
+		time.sleep(functions.floatint(database.Settings.get('throttle_msg')))
 
 class Events:
 	def connect():
@@ -166,7 +166,7 @@ class Events:
 			elif args[0] == '.ascii' and not database.Ignore.check(ident):
 				if Bot.playing and msg == '.ascii stop':
 					Bot.stopper = True
-				elif time.time() - Bot.last < int(database.Settings.get('cmd_throttle')) and not functions.is_admin(ident):
+				elif time.time() - Bot.last < int(database.Settings.get('throttle_cmd')) and not functions.is_admin(ident):
 					if not Bot.slow:
 						Commands.error(chan, 'Slow down nerd!')
 						Bot.slow = True
@@ -192,7 +192,7 @@ class Events:
 							Commands.error(chan, 'Invalid URL.', 'Only PasteBin & TermBin URLs can be used.')
 					elif args[1] == 'remote' and len(args) == 3:
 						url = args[2]
-						if 'pastebin.com/raw/' in url or 'termbin.com/' in url:
+						if url.startswith('https://pastebin.com/raw/') or url.startswith('https://termbin.com/'):
 							data = functions.get_source(url)
 							if data:
 								for item in data.split('\n'):
@@ -270,7 +270,7 @@ class Events:
 								Commands.error(chan, 'Invalid file name.', 'Use ".ascii list" for a list of valid file names.')
 					Bot.last = time.time()
 		except Exception as ex:
-			if time.time() - Bot.last < int(database.Settings.get('cmd_throttle')):
+			if time.time() - Bot.last < int(database.Settings.get('throttle_cmd')):
 				if not Bot.slow:
 					Commands.sendmsg(chan, color('Slow down nerd!', constants.red))
 					Bot.slow = True
@@ -282,7 +282,7 @@ class Events:
 		if functions.is_admin(ident):
 			args = msg.split()
 			if msg == '.update':
-				output = functions.cmd(f'git -C {ascii_dir} reset --hard FETCH_HEAD')
+				output = functions.cmd(f'git -C {ascii_dir} pull')
 				if output:
 					for line in output.split('\n'):
 						Commands.sendmsg(chan, line)

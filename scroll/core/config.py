@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-# Scroll IRC Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
+# Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # config.py
 
 class connection:
 	server     = 'irc.server.com'
-	port       = 6697
-	proxy      = None
+	port       = 6667
+	proxy      = None # Must be in IP:PORT format (Socks5 proxies only)
 	ipv6       = False
-	ssl        = True
+	ssl        = False
 	ssl_verify = False
 	vhost      = None
 	channel    = '#chats'
@@ -29,7 +29,7 @@ class login:
 	operator = None
 
 class settings:
-	admin = 'nick!user@host' # Must be in nick!user@host format (Can use wildcards here)
+	admin = 'nick!user@host' # Must be in nick!user@host format (Wildcards accepted)
 	log   = False
 	modes = None
 

@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-# Scroll IRC Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
+# Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # debug.py
 
 import ctypes
 import logging
 import os
 import sys
-import time
 
 from logging.handlers import RotatingFileHandler
 
@@ -37,7 +36,7 @@ def info():
 	clear()
 	print('#'*56)
 	print('#{0}#'.format(''.center(54)))
-	print('#{0}#'.format('Scroll IRC Bot'.center(54)))
+	print('#{0}#'.format('Scroll IRC Art Bot'.center(54)))
 	print('#{0}#'.format('Developed by acidvegas in Python'.center(54)))
 	print('#{0}#'.format('https://acid.vegas/scroll'.center(54)))
 	print('#{0}#'.format(''.center(54)))
