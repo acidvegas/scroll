@@ -9,14 +9,13 @@ sys.dont_write_bytecode = True
 os.chdir(sys.path[0] or '.')
 sys.path += ('core',)
 
-import debug
-
-debug.setup_logger()
-debug.info()
-if not debug.check_version(3):
-	debug.error_exit('Python 3 is required!')
-if debug.check_privileges():
-	debug.error_exit('Do not run as admin/root!')
+print('#'*56)
+print('#{:^54}#'.format(''))
+print('#{:^54}#'.format('Scroll IRC Art Bot'))
+print('#{:^54}#'.format('Developed by acidvegas in Python'))
+print('#{:^54}#'.format('https://acid.vegas/scroll'))
+print('#{:^54}#'.format(''))
+print('#'*56)
 import database
 database.check()
 import irc

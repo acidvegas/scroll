@@ -2,14 +2,9 @@
 # Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # functions.py
 
-import base64
-import json
-import os
 import random
 import re
 import subprocess
-import urllib.parse
-import urllib.request
 
 import config
 
@@ -28,19 +23,6 @@ def check_trunc(trunc):
 		return trunc
 	else:
 		return False
-
-def get_size(file_path):
-	return os.path.getsize(file_path)
-
-def get_source(url):
-	return urllib.request.urlopen(url, timeout=15).read().decode('utf8')
-
-def imgur_upload(file_path):
-	data = urllib.parse.urlencode({'image':base64.b64encode(open(file_path,'rb').read()),'key':config.IMGUR_API_KEY,'name':'ASCII uploaded via Scroll','title':'ASCII uploaded via Scroll','type':'base64'}).encode('utf8')
-	headers = {'Authorization':'Client-ID ' + config.IMGUR_API_KEY}
-	req = urllib.request.Request('https://api.imgur.com/3/upload.json', data, headers)
-	response = json.loads(urllib.request.urlopen(req).read())
-	return response['data']['link']
 
 def is_admin(ident):
 	return re.compile(config.settings.admin.replace('*','.*')).search(ident)

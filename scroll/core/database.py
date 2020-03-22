@@ -2,11 +2,10 @@
 # Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # database.py
 
-import os
 import re
 import sqlite3
 
-db  = sqlite3.connect(os.path.join('data', 'scroll.db'), check_same_thread=False)
+db  = sqlite3.connect('scroll.db', check_same_thread=False)
 sql = db.cursor()
 
 def check():
@@ -14,16 +13,11 @@ def check():
 	if not len(tables):
 		sql.execute('CREATE TABLE IGNORE (IDENT TEXT NOT NULL);')
 		sql.execute('CREATE TABLE SETTINGS (SETTING TEXT NOT NULL, VALUE TEXT NOT NULL);')
-		sql.execute('CREATE TABLE UPLOADS (NICK TEXT NOT NULL, URL TEXT NOT NULL, TITLE TEXT NOT NULL);')
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_lines',       '300'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_png_bytes',   '2000000'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_results',     '10'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_uploads',     '25'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_uploads_per', '5'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('rnd_exclude',     'ansi,big,birds,hang,pokemon'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('throttle_cmd',    '3'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('throttle_msg',    '0.03'))
-		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('throttle_png',    '0.03'))
+		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_lines',    '300'))
+		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('max_results',  '10'))
+		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('rnd_exclude',  'ansi,big,birds,hang,pokemon'))
+		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('throttle_cmd', '3'))
+		sql.execute('INSERT INTO SETTINGS (SETTING,VALUE) VALUES (?,?)', ('throttle_msg', '0.03'))
 		db.commit()
 
 class Ignore:
@@ -56,19 +50,4 @@ class Settings:
 
 	def update(setting, value):
 		sql.execute('UPDATE SETTINGS SET VALUE=? WHERE SETTING=?', (value, setting))
-		db.commit()
-
-class Uploads:
-	def add(nick, url, title):
-		sql.execute('INSERT INTO UPLOADS (NICK,URL,TITLE) VALUES (?,?,?)', (nick,url,title))
-		db.commit()
-
-	def read(nick=None):
-		if nick:
-			return sql.execute('SELECT NICK,URL,TITLE FROM UPLOADS WHERE NICK=?', (nick,)).fetchall()
-		else:
-			return sql.execute('SELECT NICK,URL,TITLE FROM UPLOADS').fetchall()
-
-	def remove(url):
-		sql.execute('DELETE FROM UPLOADS WHERE URL=?', (url,))
 		db.commit()

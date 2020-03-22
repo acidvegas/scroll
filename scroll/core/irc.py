@@ -6,34 +6,41 @@ import glob
 import os
 import random
 import socket
+import ssl
 import threading
 import time
 
-import ascii2png
 import config
-import constants
 import database
-import debug
 import functions
 
-# Load optional modules
-if config.connection.ssl:
-	import ssl
-if config.connection.proxy:
-	try:
-		import sock
-	except ImportError:
-		debug.error_exit('Missing PySocks module! (https://pypi.python.org/pypi/PySocks)') # Required for proxy support.
+# Control characters & color codes
+bold        = '\x02'
+underline   = '\x1F'
+reset       = '\x0f'
+white       = '00'
+black       = '01'
+blue        = '02'
+green       = '03'
+red         = '04'
+brown       = '05'
+purple      = '06'
+orange      = '07'
+yellow      = '08'
+light_green = '09'
+cyan        = '10'
+light_cyan  = '11'
+light_blue  = '12'
+pink        = '13'
+grey        = '14'
+light_grey  = '15'
 
 def color(msg, foreground, background=None):
-	return f'\x03{foreground},{background}{msg}{constants.reset}' if background else f'\x03{foreground}{msg}{constants.reset}'
-
-ascii_dir = os.path.join('data', 'art')
+	return f'\x03{foreground},{background}{msg}{reset}' if background else f'\x03{foreground}{msg}{reset}'
 
 class IRC(object):
 	def __init__(self):
 		self.last     = 0
-		self.last_png = 0
 		self.playing  = False
 		self.slow     = False
 		self.stopper  = False
@@ -41,65 +48,43 @@ class IRC(object):
 
 	def connect(self):
 		try:
-			self.create_socket()
+			self.sock = socket.socket(socket.AF_INET6) if config.connection.ipv6 else socket.socket()
+			if config.connection.vhost:
+				self.sock.bind((config.connection.vhost, 0))
+			if config.connection.ssl:
+				ctx = ssl.create_default_context()
+				if config.cert.file:
+					ctx.load_cert_chain(config.cert.file, password=config.cert.password)
+				self.sock = ctx.wrap_socket(self.sock)
 			self.sock.connect((config.connection.server, config.connection.port))
-			self.register()
-		except socket.error as ex:
-			debug.error('Failed to connect to IRC server.', ex)
+			Commands.raw(f'USER {config.ident.username} 0 * :{config.ident.realname}')
+			Commands.raw('NICK '+ config.ident.nickname)
+		except Exception as ex:
+			print(f'[!] - Failed to connect to IRC server! ({ex!s})')
 			Events.disconnect()
 		else:
 			self.listen()
-
-	def create_socket(self):
-		family = socket.AF_INET6 if config.connection.ipv6 else socket.AF_INET
-		if config.connection.proxy:
-			proxy_server, proxy_port = config.connection.proxy.split(':')
-			self.sock = socks.socksocket(family, socket.SOCK_STREAM)
-			self.sock.setblocking(0)
-			self.sock.settimeout(15)
-			self.sock.setproxy(socks.PROXY_TYPE_SOCKS5, proxy_server, int(proxy_port))
-		else:
-			self.sock = socket.socket(family, socket.SOCK_STREAM)
-		if config.connection.vhost:
-			self.sock.bind((config.connection.vhost, 0))
-		if config.connection.ssl:
-			ctx = ssl.create_default_context()
-			if config.cert.file:
-				ctx.load_cert_chain(config.cert.file, config.cert.key, config.cert.password)
-			if config.connection.ssl_verify:
-				ctx.verify_mode = ssl.CERT_REQUIRED
-				ctx.load_default_certs()
-			else:
-				ctx.check_hostname = False
-				ctx.verify_mode = ssl.CERT_NONE
-			self.sock = ctx.wrap_socket(self.sock)
 
 	def listen(self):
 		while True:
 			try:
 				data = self.sock.recv(1024).decode('utf-8')
 				for line in (line for line in data.split('\r\n') if len(line.split()) >= 2):
-					debug.irc(line)
+					print('[~] - ' + line)
 					Events.handle(line)
 			except (UnicodeDecodeError, UnicodeEncodeError):
 				pass
 			except Exception as ex:
-				debug.error('Unexpected error occured.', ex)
+				print(f'[!] - Unexpected error occured! ({ex!s})')
 				break
 		Events.disconnect()
-
-	def register(self):
-		if config.login.network:
-			Commands.raw('PASS ' + config.login.network)
-		Commands.raw(f'USER {config.ident.username} 0 * :{config.ident.realname}')
-		Commands.raw('NICK '+ config.ident.nickname)
 
 class Commands:
 	def error(chan, msg, reason=None):
 		if reason:
-			Commands.sendmsg(chan, '[{0}] {1} {2}'.format(color('ERROR', constants.red), msg, color(f'({reason})', constants.grey)))
+			Commands.sendmsg(chan, '[{0}] {1} {2}'.format(color('ERROR', red), msg, color(f'({reason})', grey)))
 		else:
-			Commands.sendmsg(chan, '[{0}] {1}'.format(color('ERROR', constants.red), msg))
+			Commands.sendmsg(chan, '[{0}] {1}'.format(color('ERROR', red), msg))
 
 	def join_channel(chan, key=None):
 		Commands.raw(f'JOIN {chan} {key}') if key else Commands.raw('JOIN ' + chan)
@@ -111,9 +96,8 @@ class Commands:
 			if len(data.splitlines()) > functions.floatint(database.Settings.get('max_lines')) and chan != '#scroll':
 				Commands.error(chan, 'File is too big.', 'Take it to #scroll')
 			else:
-				name = ascii_file.split(ascii_dir)[1]
 				data = data.splitlines()[trunc[0]:-trunc[1]] if trunc else data.splitlines()
-				Commands.sendmsg(chan, ascii_file.split(ascii_dir)[1])
+				Commands.sendmsg(chan, f'{bold}the ascii gods have chosen: {underline}{ascii_file[4:-4]}')
 				for line in (line for line in data if line):
 					if Bot.stopper:
 						break
@@ -121,7 +105,7 @@ class Commands:
 						line = line[trunc[2]:-trunc[3]]
 					Commands.sendmsg(chan, ' '*trunc[4] + line) if trunc else Commands.sendmsg(chan, line)
 		except Exception as ex:
-			debug.error('Error occured in the play function!', ex)
+			print(f'Error occured in the play function! ({ex!s})')
 		finally:
 			Bot.stopper = False
 			Bot.playing = False
@@ -149,20 +133,11 @@ class Events:
 		time.sleep(15)
 		Bot.connect()
 
-	def kick(chan, kicked):
-		if kicked == config.ident.nickname:
-			if chan == config.connection.channel:
-				time.sleep(3)
-				Commands.join_channel(chan, config.connection.key)
-			elif chan == '#scroll':
-				time.sleep(3)
-				Commands.join_channel(chan)
-
 	def message(ident, nick, chan, msg):
 		try:
 			args = msg.split()
 			if msg == '@scroll':
-				Commands.sendmsg(chan, constants.bold + 'Scroll IRC Bot - Developed by acidvegas in Python - https://acid.vegas/scroll')
+				Commands.sendmsg(chan, bold + 'Scroll IRC Bot - Developed by acidvegas in Python - https://github.com/ircart/scroll')
 			elif args[0] == '.ascii' and not database.Ignore.check(ident):
 				if Bot.playing and msg == '.ascii stop':
 					Bot.stopper = True
@@ -173,81 +148,31 @@ class Events:
 				elif len(args) >= 2:
 					Bot.slow = False
 					if args[1] == 'dirs' and len(args) == 2:
-						dirs = sorted(glob.glob(os.path.join(ascii_dir, '*/')))
+						dirs = sorted(glob.glob('art/*/'))
 						for directory in dirs:
 							name = os.path.basename(os.path.dirname(directory))
 							file_count = str(len(glob.glob(os.path.join(directory, '*.txt'))))
-							Commands.sendmsg(chan, '[{0}] {1} {2}'.format(color(str(dirs.index(directory)+1).zfill(2), constants.pink), name.ljust(10), color(f'({file_count})', constants.grey)))
-					elif args[1] == 'png' and len(args) == 3:
-						url = args[2]
-						if url.startswith('https://pastebin.com/raw/') or url.startswith('http://termbin.com/'):
-							ascii2png.ascii_png(url)
-							ascii_file = os.path.join('data','temp.png')
-							if os.path.getsize(ascii_file) < int(database.Settings.get('png_max_bytes')):
-								Commands.sendmsg(chan, functions.imgur_upload(os.path.join('data','temp.png')))
-								Bot.last_png = time.time()
-							else:
-								Commands.error(chan, 'File too large', '2MB Max')
-						else:
-							Commands.error(chan, 'Invalid URL.', 'Only PasteBin & TermBin URLs can be used.')
-					elif args[1] == 'remote' and len(args) == 3:
-						url = args[2]
-						if url.startswith('https://pastebin.com/raw/') or url.startswith('https://termbin.com/'):
-							data = functions.get_source(url)
-							if data:
-								for item in data.split('\n'):
-									Commands.sendmsg(chan, item)
-							else:
-								Commands.error(chan, 'Found no data on URL!')
-						else:
-							Commands.error(chan, 'Invalid URL!', 'Must be a pastebin.com or termbin.com link.')
+							Commands.sendmsg(chan, '[{0}] {1} {2}'.format(color(str(dirs.index(directory)+1).zfill(2), pink), name.ljust(10), color(f'({file_count})', grey)))
 					elif args[1] == 'search' and len(args) == 3:
 						query   = args[2]
-						results = glob.glob(os.path.join(ascii_dir, f'**/*{query}*.txt'), recursive=True)
+						results = glob.glob(f'art/**/*{query}*.txt', recursive=True)
 						if results:
 							results = results[:int(database.Settings.get('max_results'))]
 							for file_name in results:
 								count = str(results.index(file_name)+1)
-								Commands.sendmsg(chan, '[{0}] {1}'.format(color(count.zfill(2), constants.pink), os.path.basename(file_name)))
+								Commands.sendmsg(chan, '[{0}] {1}'.format(color(count.zfill(2), pink), os.path.basename(file_name)[:-4]))
 						else:
 							Commands.error(chan, 'No results found.')
-					elif args[1] == 'upload':
-						if len(args) == 2:
-							uploads = database.Uploads.read()
-							if uploads:
-								for upload in uploads:
-									Commands.sendmsg(chan, '[{0}] {1} - {2} - {3}.txt'.format(color(uploads.index(upload)+1, constants.pink), color(upload[0], constants.yellow), color(upload[1], constants.grey), upload[2]))
-							else:
-								Commands.error(chan, 'No uploaded files!', 'Use ".ascii upload <url> <title>" to upload.')
-						elif len(args) == 4:
-							url = args[2]
-							if url.startswith('https://pastebin.com/raw/') or url.startswith('https://termbin.com/'):
-								if url not in [item[1] for item in database.Uploads.read()]:
-									title = args[3].lower()[:20]
-									check = (glob.glob(os.path.join(ascii_dir, f'**/{title}.txt'), recursive=True)[:1] or [None])[0]
-									if not check:
-										if len(database.Uploads.read(nick)) == int(database.Settings.get('max_uploads_per')):
-											database.Uploads.remove(database.Uploads.read(nick)[0][1])
-										elif len(database.Uploads.read()) == int(database.Settings.get('max_uploads')):
-											database.Uploads.remove(database.Uploads.read()[0][1])
-										database.Uploads.add(nick, url, title)
-										Commands.sendmsg(chan, 'Uploaded!')
-									else:
-										Commands.error(chan, 'File with that title already exists!')
-								else:
-									Commands.error(chan, 'URL is already uploaded!')
-							else:
-								Commands.error(chan, 'Invalid URL.', 'Only PasteBin & TermBin URLs can be used.')
 					elif args[1] == 'random':
 						if len(args) == 2:
-							ascii_file = random.choice([file for file in glob.glob(os.path.join(ascii_dir, '**/*.txt'), recursive=True) if os.path.basename(os.path.dirname(file)) not in database.Settings.get('rnd_exclude').split(',')])
+							ascii_file = random.choice([file for file in glob.glob('art/**/*.txt', recursive=True) if os.path.basename(os.path.dirname(file)) not in database.Settings.get('rnd_exclude').split(',')])
 							threading.Thread(target=Commands.play, args=(chan, ascii_file)).start()
 						elif len(args) == 3:
 							dir = args[2]
-							if '../' in dir:
+							if not dir.isalpha():
 								Commands.error(chan, 'Nice try nerd!')
-							elif os.path.isdir(os.path.join(ascii_dir, dir)):
-								ascii_file = random.choice(glob.glob(os.path.join(ascii_dir, dir + '/*.txt'), recursive=True))
+							elif os.path.isdir('art/' + dir):
+								ascii_file = random.choice(glob.glob(f'art/{dir}/*.txt', recursive=True))
 								threading.Thread(target=Commands.play, args=(chan, ascii_file)).start()
 							else:
 								Commands.error(chan, 'Invalid directory name.', 'Use ".ascii dirs" for a list of valid directory names.')
@@ -256,7 +181,7 @@ class Events:
 						if '/' in option:
 							Commands.error(chan, 'Nice try nerd!')
 						else:
-							ascii_file = (glob.glob(os.path.join(ascii_dir, f'**/{option}.txt'), recursive=True)[:1] or [None])[0]
+							ascii_file = (glob.glob(f'art/**/{option}.txt', recursive=True) or [None])[0]
 							if ascii_file:
 								if len(args) == 3:
 									trunc = functions.check_trunc(args[2])
@@ -272,7 +197,7 @@ class Events:
 		except Exception as ex:
 			if time.time() - Bot.last < int(database.Settings.get('throttle_cmd')):
 				if not Bot.slow:
-					Commands.sendmsg(chan, color('Slow down nerd!', constants.red))
+					Commands.sendmsg(chan, color('Slow down nerd!', red))
 					Bot.slow = True
 			else:
 				Commands.error(chan, 'Command threw an exception.', ex)
@@ -282,31 +207,31 @@ class Events:
 		if functions.is_admin(ident):
 			args = msg.split()
 			if msg == '.update':
-				output = functions.cmd(f'git -C {ascii_dir} pull')
+				output = functions.cmd(f'git -C art pull')
 				if output:
 					for line in output.split('\n'):
 						Commands.sendmsg(chan, line)
 			elif args[0] == '.config':
 				if len(args) == 1:
 					settings = database.Settings.read()
-					Commands.sendmsg(nick, '[{0}]'.format(color('Settings', constants.purple)))
+					Commands.sendmsg(nick, '[{0}]'.format(color('Settings', purple)))
 					for setting in settings:
-						Commands.sendmsg(nick, '{0} = {1}'.format(color(setting[0], constants.yellow), color(setting[1], constants.grey)))
+						Commands.sendmsg(nick, '{0} = {1}'.format(color(setting[0], yellow), color(setting[1], grey)))
 				elif len(args) == 3:
 					setting, value = args[1], args[2]
 					if setting in database.Settings.settings():
 						database.Settings.update(setting, value)
-						Commands.sendmsg(nick, 'Change setting for {0} to {1}.'.format(color(setting, constants.yellow), color(value, constants.grey)))
+						Commands.sendmsg(nick, 'Change setting for {0} to {1}.'.format(color(setting, yellow), color(value, grey)))
 					else:
 						Commands.error(nick, 'Invalid config variable.')
 			elif args[0] == '.ignore':
 				if len(args) == 1:
 					ignores = database.Ignore.read()
 					if ignores:
-						Commands.sendmsg(nick, '[{0}]'.format(color('Ignore List', constants.purple)))
+						Commands.sendmsg(nick, '[{0}]'.format(color('Ignore List', purple)))
 						for ignore_ident in ignores:
-							Commands.sendmsg(nick, color(ignore_ident, constants.yellow))
-						Commands.sendmsg(nick, '{0} {1}'.format(color('Total:', constants.light_blue), color(len(ignores), constants.grey)))
+							Commands.sendmsg(nick, color(ignore_ident, yellow))
+						Commands.sendmsg(nick, '{0} {1}'.format(color('Total:', light_blue), color(len(ignores), grey)))
 					else:
 						Commands.error(nick, 'Ignore list is empty!')
 				elif len(args) == 2 and args[0] == '.ignore':
@@ -324,24 +249,21 @@ class Events:
 				data = msg[5:]
 				Commands.raw(data)
 
-
-	def nick_in_use():
-		config.ident.nickname = 'scroll' + str(functions.random_int(10,99))
-		Commands.nick(config.ident.nickname)
-
 	def handle(data):
 		args = data.split()
-		if args[0] == constants.PING:
+		if args[0] == 'PING':
 			Commands.raw('PONG ' + args[1][1:])
-		elif args[1] == constants.RPL_WELCOME:
+		elif args[1] == '001': # RPL_WELCOME
 			Events.connect()
-		elif args[1] == constants.ERR_NICKNAMEINUSE:
-			Events.nick_in_use()
-		elif args[1] == constants.KICK and len(args) >= 4:
-			chan   = args[2]
-			kicked = args[3]
-			Events.kick(chan, kicked)
-		elif args[1] == constants.PRIVMSG and len(args) >= 4:
+		elif args[1] == '433': # ERR_NICKNAMEINUSE
+			config.ident.nickname = 'scroll' + str(functions.random_int(10,99))
+			Commands.raw('NICK '+ config.ident.nickname)
+		elif args[1] == 'KICK' and len(args) >= 4:
+			chan, kicked = args[2], args[3]
+			if chan in (config.connection.channel,'#scroll') and kicked == config.ident.nickname:
+				time.sleep(3)
+				Commands.join_channel(chan, config.connection.key)
+		elif args[1] == 'PRIVMSG' and len(args) >= 4:
 			ident = args[0][1:]
 			nick  = args[0].split('!')[0][1:]
 			chan  = args[2]
