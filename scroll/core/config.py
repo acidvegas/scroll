@@ -3,16 +3,16 @@
 # config.py
 
 class connection:
-	server     = 'irc.server.com'
-	port       = 6667
-	ipv6       = False
-	ssl        = False
-	vhost      = None
-	channel    = '#chats'
-	key        = None
+	server  = 'irc.server.com'
+	port    = 6667
+	ipv6    = False
+	ssl     = False
+	vhost   = None
+	channel = '#chats'
+	key     = None
 
 class cert:
-	key      = None
+	file     = None
 	password = None
 
 class ident:

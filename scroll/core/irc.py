@@ -53,6 +53,8 @@ class IRC(object):
 				self.sock.bind((config.connection.vhost, 0))
 			if config.connection.ssl:
 				ctx = ssl.create_default_context()
+				ctx.check_hostname = False
+				ctx.verify_mode = ssl.CERT_NONE
 				if config.cert.file:
 					ctx.load_cert_chain(config.cert.file, password=config.cert.password)
 				self.sock = ctx.wrap_socket(self.sock)
