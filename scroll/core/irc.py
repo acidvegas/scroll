@@ -2,6 +2,7 @@
 # Scroll IRC Art Bot - Developed by acidvegas in Python (https://acid.vegas/scroll)
 # irc.py
 
+import chardet
 import glob
 import os
 import random
@@ -94,7 +95,8 @@ class Commands:
 	def play(chan, ascii_file, trunc=None):
 		try:
 			Bot.playing = True
-			data = open(ascii_file, encoding='utf8', errors='replace').read()
+			data = open(ascii_file, 'rb').read()
+			data = data.decode(chardet.detect(data)['encoding'])
 			if len(data.splitlines()) > functions.floatint(database.Settings.get('max_lines')) and chan != '#scroll':
 				Commands.error(chan, 'File is too big.', 'Take it to #scroll')
 			else:
