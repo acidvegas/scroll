@@ -107,15 +107,15 @@ class Commands:
 						break
 					elif trunc:
 						line = line[trunc[2]:-trunc[3]]
-					Commands.sendmsg(chan, ' '*trunc[4] + line) if trunc else Commands.sendmsg(chan, line)
+					Commands.sendmsg(chan, ' '*trunc[4]+line+reset) if trunc else Commands.sendmsg(chan, line+reset)
 		except Exception as ex:
 			print(f'Error occured in the play function! ({ex!s})')
 		finally:
 			Bot.stopper = False
 			Bot.playing = False
 
-	def raw(msg):
-		Bot.sock.send(bytes(msg + '\r\n', 'utf-8'))
+	def raw(data):
+		Bot.sock.send(bytes(data[:510] + '\r\n', 'utf-8'))
 
 	def sendmsg(target, msg):
 		Commands.raw(f'PRIVMSG {target} :{msg}')
